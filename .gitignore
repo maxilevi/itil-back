@@ -6,3 +6,5 @@
 
 # PYTHON
 __pycache__/
+
+.env
