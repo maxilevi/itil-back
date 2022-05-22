@@ -4,3 +4,4 @@ psycopg2
 python-dotenv
 gunicorn
 flask_swagger_ui
+pytest
