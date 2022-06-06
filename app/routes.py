@@ -13,9 +13,9 @@ from app.models import Change, Incident, Problem, SoftwareConfiguration, Hardwar
 routes_bp = Blueprint('routes', __name__, )
 
 
-# @routes_bp.route('/', methods=['GET'])
-# def index():
-#     return 'Hola'
+@routes_bp.route('/', methods=['GET'])
+def index():
+    return 'Hola'
 
 # Incidentes
 @routes_bp.route('/incident', methods=['GET'])
