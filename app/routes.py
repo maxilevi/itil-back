@@ -17,6 +17,50 @@ routes_bp = Blueprint('routes', __name__, )
 def index():
     return 'Hola'
 
+# Problems
+@routes_bp.route('/problem', methods=['GET'])
+def getProblems():
+    return jsonify(list(map(problemToDict, Problem.query.all())))
+
+@routes_bp.route('/problem/<id>', methods=['GET'])
+def getProblemById(id):
+    return jsonify(problemToDict(Incident.query.get(id)))
+
+@routes_bp.route('/problem', methods=['POST'])
+def postProblem():
+    content = request.json
+    if not 'name' in content:
+        return getError('Faltan atributos obligatorios para un problema.')
+
+    problem = Problem(name=content['name'], status=Status.CREATED)
+
+    if 'proprity' in content:
+        problem.priority = content['priority']
+
+    if 'created_by_id' in content:
+        problem.created_by_id = content['created_by_id']
+
+    if 'problem_id' in content:
+        problem.problem_id = content['problem_id']
+
+    db.session.add(problem)
+    db.session.commit()
+    return jsonify({
+        "status_code": 201,
+        "codigo": problem.id
+    })
+
+
+def problemToDict(problem):
+    return {
+        'id': problem.id,
+        'taken_by_id': problem.taken_by_id,
+        'created_by_id': problem.created_by_id,
+        'priority': problem.priority,
+        'status': problem.status,
+        'name': problem.name
+    }
+
 # Incidentes
 @routes_bp.route('/incident', methods=['GET'])
 def getIncidents():
@@ -56,6 +100,9 @@ def postIncident():
 
     if 'created_by_id' in content:
         incident.created_by_id = content['created_by_id']
+
+    if 'taken_by_id' in content:
+        incident.taken_by_id = content['taken_by_id']
 
     if 'problem_id' in content:
         incident.problem_id = content['problem_id']
