@@ -32,16 +32,12 @@ class SoftwareConfiguration(db.Model):
     end_date = db.Column(db.Date, nullable=False)
     crucial = db.Column(db.Boolean, nullable=False)
 
-# class Configuration(db.Model):
-#     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-#     configuration_type = db.Column(db.String)
-#     name = db.Column(db.String, nullable=False)
-
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String, nullable=False)
     mail = db.Column(db.String, nullable=False)
     password = db.Column(db.String, nullable=False)
+    auth_id = db.Column(db.Integer, nullable=False)
 
 class Problem(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -69,5 +65,15 @@ class Change(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     description = db.Column(db.String)
     priority = db.Column(db.String)
-    status = db.Column(db.String)
     created_by_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    problem_id = db.Column(db.Integer, db.ForeignKey("problem.id"))
+
+class ProblemComment(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    comment = db.Column(db.String)
+    problem_id = db.Column(db.Integer, db.ForeignKey("problem.id"))
+
+class IncidentComment(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    comment = db.Column(db.String)
+    incident_id = db.Column(db.Integer, db.ForeignKey("incident.id"))
