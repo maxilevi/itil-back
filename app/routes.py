@@ -20,13 +20,16 @@ def getChanges():
 
 @routes_bp.route('/change/<id>', methods=['GET'])
 def getChangeById(id):
-    return jsonify(changeToDict(Change.query.get(id)))
+    change = Change.query.get(id)
+    if change == None:
+        return getError("No existe ese cambio"), 400
+    return jsonify(changeToDict(change))
 
 @routes_bp.route('/problem', methods=['POST'])
 def postChange():
     content = request.json
     if not 'name' in content or 'problem_id' not in content:
-        return getError('Faltan atributos obligatorios para un cambio.')
+        return getError('Faltan atributos obligatorios para un cambio.'), 400
 
     change = Change(name=content['name'], problem_id=content['problem_id'])
 
@@ -73,7 +76,7 @@ def getProblemComments(problem_id):
 def commentProblem(problem_id):
     content = request.json
     if not 'comment' in content:
-        return getError('Falta el comentario.')
+        return getError('Falta el comentario.'), 400
 
     comment = ProblemComment(comment=content['comment'], problem_id=problem_id)
 
@@ -86,13 +89,16 @@ def getProblems():
 
 @routes_bp.route('/problem/<id>', methods=['GET'])
 def getProblemById(id):
-    return jsonify(problemToDict(Problem.query.get(id)))
+    problem = Problem.query.get(id)
+    if problem == None:
+        return getError("No existe ese problema."), 400
+    return jsonify(problemToDict(problem))
 
 @routes_bp.route('/problem/<id>/take', methods=['POST'])
 def takeProblem(problem_id):
     content = request.json
     if not 'taken_by_id' in content:
-        return getError('Falta el ID del usuario.')
+        return getError('Falta el ID del usuario.'), 400
 
     incidents = Incident.query.filter_by(problem_id=problem_id)
     for incident in incidents:
@@ -118,7 +124,7 @@ def solveProblem(problem_id):
 def postProblem():
     content = request.json
     if not 'name' in content:
-        return getError('Faltan atributos obligatorios para un problema.')
+        return getError('Faltan atributos obligatorios para un problema.'), 400
 
     problem = Problem(name=content['name'], status=Status.CREATED)
 
@@ -160,7 +166,7 @@ def getIncidentComments(incident_id):
 def commentIncident(incident_id):
     content = request.json
     if not 'comment' in content:
-        return getError('Falta el comentario.')
+        return getError('Falta el comentario.'), 400
 
     comment = IncidentComment(comment=content['comment'], incident_id=incident_id)
 
@@ -171,11 +177,11 @@ def commentIncident(incident_id):
 def assignToProblem(incident_id):
     content = request.json
     if not 'problem_id' in content:
-        return getError('Falta el comentario.')
+        return getError('Falta el comentario.'), 400
 
     problem = Problem.query.get(content['problem_id'])
     if not problem:
-        return getError('Problem_id inválido.')
+        return getError('Problem_id inválido.'), 400
     incident = Incident.query.get(incident_id)
     incident.status = problem.status
     incident.problem_id = content['problem_id']
@@ -188,13 +194,16 @@ def getIncidents():
 
 @routes_bp.route('/incident/<id>', methods=['GET'])
 def getIncidentById(id):
-    return jsonify(incidentToDict(Incident.query.get(id)))
+    incident = Incident.query.get(id)
+    if incident == None:
+        return getError("No existe ese incidente."), 400
+    return jsonify(incidentToDict(incident))
 
 @routes_bp.route('/incident', methods=['POST'])
 def postIncident():
     content = request.json
     if not 'name' in content:
-        return getError('Faltan atributos obligatorios para un incidente.')
+        return getError('Faltan atributos obligatorios para un incidente.'), 400
 
     incident = Incident(name=content['name'], status=Status.CREATED)
 
@@ -209,7 +218,7 @@ def postIncident():
 
     if 'configuration' in content:
         if not 'configuration_type' in content:
-            return getError('Falta el tipo de configuración.')
+            return getError('Falta el tipo de configuración.'), 400
 
         if content['configuration_type'] == 'hardware':
             incident.hardware_configuration_id = content['configuration']
@@ -227,7 +236,7 @@ def postIncident():
     if 'problem_id' in content:
         problem = Problem.query.get(content['problem_id'])
         if not problem:
-            return getError('Problem_id inválido.')
+            return getError('Problem_id inválido.'), 400
         incident.status = problem.status
         incident.problem_id = content['problem_id']
 
@@ -270,6 +279,5 @@ def incidentToDict(incident):
 
 def getError(msj):
     return jsonify({
-        "status_code": 400,
-        "description": msj
+        "error": msj
     })
