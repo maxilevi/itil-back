@@ -11,7 +11,8 @@ def create_app():
 
 	app = Flask(__name__)
 	app.config['DEBUG'] = True
-	app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{os.getenv("DB_USERNAME")}:{os.getenv("DB_PASSWORD")}@{os.getenv("DB_HOST")}:{os.getenv("DB_PORT")}/{os.getenv("DB_DATABASE")}'
+	app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
+		# f'postgresql://{os.getenv("DB_USERNAME")}:{os.getenv("DB_PASSWORD")}@{os.getenv("DB_HOST")}:{os.getenv("DB_PORT")}/{os.getenv("DB_DATABASE")}'
 
 	db.init_app(app)
 	app.register_blueprint(routes_bp, url_prefix='/')

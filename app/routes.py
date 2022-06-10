@@ -236,7 +236,7 @@ def postIncident():
     if 'problem_id' in content:
         problem = Problem.query.get(content['problem_id'])
         if not problem:
-            return getError('Problem_id inválido.'), 400
+            return getError('Problem_id inválido.'), 404
         incident.status = problem.status
         incident.problem_id = content['problem_id']
 
