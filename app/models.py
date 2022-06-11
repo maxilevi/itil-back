@@ -3,34 +3,26 @@ from sqlalchemy.orm import relationship
 
 db = SQLAlchemy()
 
-class HardwareConfiguration(db.Model):
+class Configuration(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String, nullable=False)
-    type = db.Column(db.String, nullable=False)
-    location = db.Column(db.String, nullable=False)
-    provider = db.Column(db.String, nullable=False)
-    price = db.Column(db.Integer, nullable=False)
-    installation_date = db.Column(db.Date, nullable=False)
-    capacity = db.Column(db.Integer, nullable=False)
-    serial_number = db.Column(db.String, nullable=False)
+    config_type = db.Column(db.String, nullable=False)
+    type = db.Column(db.String, nullable=True)
+    version = db.Column(db.String, nullable=True)
+    provider = db.Column(db.String, nullable=True)
+    licences = db.Column(db.String, nullable=True)
+    acceptance_date = db.Column(db.Date, nullable=True)
+    service = db.Column(db.String, nullable=True)
+    service_manager = db.Column(db.String, nullable=True)
+    start_date = db.Column(db.Date, nullable=True)
+    end_date = db.Column(db.Date, nullable=True)
+    crucial = db.Column(db.Boolean, nullable=True)
+    location = db.Column(db.String, nullable=True)
+    price = db.Column(db.Integer, nullable=True)
+    installation_date = db.Column(db.Date, nullable=True)
+    capacity = db.Column(db.Integer, nullable=True)
+    serial_number = db.Column(db.String, nullable=True)
 
-class SLAConfiguration(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String, nullable=False)
-    type = db.Column(db.String, nullable=False)
-    version = db.Column(db.String, nullable=False)
-    provider = db.Column(db.String, nullable=False)
-    licences = db.Column(db.String, nullable=False)
-    acceptance_date = db.Column(db.Date, nullable=False)
-
-class SoftwareConfiguration(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String, nullable=False)
-    service = db.Column(db.String, nullable=False)
-    service_manager = db.Column(db.String, nullable=False)
-    start_date = db.Column(db.Date, nullable=False)
-    end_date = db.Column(db.Date, nullable=False)
-    crucial = db.Column(db.Boolean, nullable=False)
 
 class Problem(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -54,9 +46,7 @@ class Incident(db.Model):
 class IncidentConfiguration(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     incident_id = db.Column(db.Integer, db.ForeignKey("incident.id"))
-    software_configuration_id = db.Column(db.Integer, db.ForeignKey("software_configuration.id"), nullable=True)
-    hardware_configuration_id = db.Column(db.Integer, db.ForeignKey("hardware_configuration.id"), nullable=True)
-    sla_configuration_id = db.Column(db.Integer, db.ForeignKey("sla_configuration.id"), nullable=True)
+    configuration_id = db.Column(db.Integer, db.ForeignKey("configuration.id"), nullable=False)
 
 class Change(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
