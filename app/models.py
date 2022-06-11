@@ -32,40 +32,37 @@ class SoftwareConfiguration(db.Model):
     end_date = db.Column(db.Date, nullable=False)
     crucial = db.Column(db.Boolean, nullable=False)
 
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String, nullable=False)
-    mail = db.Column(db.String, nullable=False)
-    password = db.Column(db.String, nullable=False)
-    auth_id = db.Column(db.Integer, nullable=False)
-
 class Problem(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String, nullable=False)
     priority = db.Column(db.String)
     status = db.Column(db.String)
-    created_by_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    taken_by_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    created_by_id = db.Column(db.String)
+    taken_by_id = db.Column(db.String)
 
 class Incident(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    software_configuration_id = db.Column(db.Integer, db.ForeignKey("software_configuration.id"), nullable=True)
-    hardware_configuration_id = db.Column(db.Integer, db.ForeignKey("hardware_configuration.id"), nullable=True)
-    sla_configuration_id = db.Column(db.Integer, db.ForeignKey("sla_configuration.id"), nullable=True)
     problem_id = db.Column(db.Integer, db.ForeignKey("problem.id"))
     name = db.Column(db.String, nullable=False)
     priority = db.Column(db.String)
-    created_by_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    taken_by_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    created_by_id = db.Column(db.String)
+    taken_by_id = db.Column(db.String)
     description = db.Column(db.String)
     impact = db.Column(db.String)
     status = db.Column(db.String, nullable=False)
+
+class IncidentConfiguration(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    incident_id = db.Column(db.Integer, db.ForeignKey("incident.id"))
+    software_configuration_id = db.Column(db.Integer, db.ForeignKey("software_configuration.id"), nullable=True)
+    hardware_configuration_id = db.Column(db.Integer, db.ForeignKey("hardware_configuration.id"), nullable=True)
+    sla_configuration_id = db.Column(db.Integer, db.ForeignKey("sla_configuration.id"), nullable=True)
 
 class Change(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     description = db.Column(db.String)
     priority = db.Column(db.String)
-    created_by_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    created_by_id = db.Column(db.String)
     problem_id = db.Column(db.Integer, db.ForeignKey("problem.id"))
 
 class ProblemComment(db.Model):

@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 
 from app.Status import Status
-from app.models import Change, Incident, Problem, SoftwareConfiguration, HardwareConfiguration, SLAConfiguration, User, ProblemComment, IncidentComment, db
+from app.models import Change, Incident, Problem, IncidentConfiguration, ProblemComment, IncidentComment, db
 
 routes_bp = Blueprint('routes', __name__, )
 
@@ -248,20 +248,27 @@ def postIncident():
     })
 
 
-def incidentToDict(incident):
+def configToDict(incidentConfig):
     config_type = None
     config_id = None
-    if incident.sla_configuration_id:
-        config_id = incident.sla_configuration_id
+    if incidentConfig.sla_configuration_id:
+        config_id = incidentConfig.sla_configuration_id
         config_type = 'sla'
 
-    if incident.software_configuration_id:
-        config_id = incident.software_configuration_id
+    if incidentConfig.software_configuration_id:
+        config_id = incidentConfig.software_configuration_id
         config_type = 'software'
 
-    if incident.hardware_configuration_id:
-        config_id = incident.hardware_configuration_id
+    if incidentConfig.hardware_configuration_id:
+        config_id = incidentConfig.hardware_configuration_id
         config_type = 'hardware'
+
+    return {
+        'type': config_type,
+        'id': config_id
+    }
+
+def incidentToDict(incident):
 
     return {
         'id': incident.id,
@@ -271,8 +278,7 @@ def incidentToDict(incident):
         'created_by_id': incident.created_by_id,
         'priority': incident.priority,
         'status': incident.status,
-        'configuration_id': config_id,
-        'configuration_type': config_type,
+        'configurations': map(configToDict, IncidentConfiguration.query.filter_by(incident_id=incident.id)),
         'description': incident.description,
         'name': incident.name
     }
