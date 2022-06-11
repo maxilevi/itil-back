@@ -3,8 +3,10 @@ from sqlalchemy.orm import relationship
 
 db = SQLAlchemy()
 
-class Configuration(db.Model):
+class ConfigurationData(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    config_id = db.Column(db.Integer, db.ForeignKey("configuration.id"))
+    version_number = db.Column(db.Integer, nullable=False)
     name = db.Column(db.String, nullable=False)
     config_type = db.Column(db.String, nullable=False)
     type = db.Column(db.String, nullable=True)
@@ -23,6 +25,8 @@ class Configuration(db.Model):
     capacity = db.Column(db.Integer, nullable=True)
     serial_number = db.Column(db.String, nullable=True)
 
+class Configuration(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
 class Problem(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
