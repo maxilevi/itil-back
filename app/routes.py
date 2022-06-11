@@ -12,6 +12,8 @@ def index():
 
 # Configuration
 
+
+
 # Changes
 
 @routes_bp.route('/change', methods=['GET'])
@@ -223,17 +225,6 @@ def postIncident():
     if 'description' in content:
         incident.description = content['description']
 
-    if 'configuration_id' in content:
-        if not 'configuration_type' in content:
-            return getError('Falta el tipo de configuración.'), 400
-
-        if content['configuration_type'] == 'hardware':
-            incident.hardware_configuration_id = content['configuration_id']
-        if content['configuration_type'] == 'software':
-            incident.software_configuration_id = content['configuration_id']
-        if content['configuration_type'] == 'sla':
-            incident.sla_configuration_id = content['configuration_id']
-
     if 'created_by_id' in content:
         incident.created_by_id = content['created_by_id']
 
@@ -248,25 +239,33 @@ def postIncident():
         incident.problem_id = content['problem_id']
 
     db.session.add(incident)
+    db.session.flush()
+    db.session.refresh(incident)
+
+    if 'configuration_ids' in content:
+        for id in content['configuration_ids']:
+            incident_configuration = IncidentConfiguration(indicent_id=incident.id, configuration_id=id)
+            db.session.add(incident_configuration)
+
     db.session.commit()
     return jsonify({
         "id": incident.id
     }), 201
 
 
-def configToDict(incidentConfig):
+def configToDict(incident_config):
     config_type = None
     config_id = None
-    if incidentConfig.sla_configuration_id:
-        config_id = incidentConfig.sla_configuration_id
+    if incident_config.sla_configuration_id:
+        config_id = incident_config.sla_configuration_id
         config_type = 'sla'
 
-    if incidentConfig.software_configuration_id:
-        config_id = incidentConfig.software_configuration_id
+    if incident_config.software_configuration_id:
+        config_id = incident_config.software_configuration_id
         config_type = 'software'
 
-    if incidentConfig.hardware_configuration_id:
-        config_id = incidentConfig.hardware_configuration_id
+    if incident_config.hardware_configuration_id:
+        config_id = incident_config.hardware_configuration_id
         config_type = 'hardware'
 
     return {
