@@ -25,13 +25,13 @@ def getChangeById(id):
         return getError("No existe ese cambio"), 400
     return jsonify(changeToDict(change))
 
-@routes_bp.route('/problem', methods=['POST'])
+@routes_bp.route('/change', methods=['POST'])
 def postChange():
     content = request.json
     if not 'name' in content or 'problem_id' not in content:
         return getError('Faltan atributos obligatorios para un cambio.'), 400
 
-    change = Change(name=content['name'], problem_id=content['problem_id'])
+    change = Change(name=content['name'], status=Status.CREATED, problem_id=content['problem_id'])
 
     if 'description' in content:
         change.description = content['description']
@@ -51,9 +51,8 @@ def postChange():
     db.session.add(change)
     db.session.commit()
     return jsonify({
-        "status_code": 201,
         "id": change.id
-    })
+    }), 201
 
 def changeToDict(change):
     return {
@@ -62,7 +61,8 @@ def changeToDict(change):
         'created_by_id': change.created_by_id,
         'priority': change.priority,
         'name': change.name,
-        'problem_id' : change.problem_id
+        'problem_id' : change.problem_id,
+        'status': change.status,
     }
 
 # Problems
@@ -90,7 +90,7 @@ def getProblems():
 @routes_bp.route('/problem/<id>', methods=['GET'])
 def getProblemById(id):
     problem = Problem.query.get(id)
-    if problem == None:
+    if problem is None:
         return getError("No existe ese problema."), 400
     return jsonify(problemToDict(problem))
 
@@ -138,11 +138,18 @@ def postProblem():
         problem.problem_id = content['problem_id']
 
     db.session.add(problem)
+    db.session.flush()
+    db.session.refresh(problem)
+
+    if 'incident_ids' in content:
+        for id in content['incident_ids']:
+            incident = Incident.query.get(id)
+            incident.problem_id = problem.id
+
     db.session.commit()
     return jsonify({
-        "status_code": 201,
         "id": problem.id
-    })
+    }), 201
 
 
 def problemToDict(problem):
@@ -216,16 +223,16 @@ def postIncident():
     if 'description' in content:
         incident.description = content['description']
 
-    if 'configuration' in content:
+    if 'configuration_id' in content:
         if not 'configuration_type' in content:
             return getError('Falta el tipo de configuración.'), 400
 
         if content['configuration_type'] == 'hardware':
-            incident.hardware_configuration_id = content['configuration']
+            incident.hardware_configuration_id = content['configuration_id']
         if content['configuration_type'] == 'software':
-            incident.software_configuration_id = content['configuration']
+            incident.software_configuration_id = content['configuration_id']
         if content['configuration_type'] == 'sla':
-            incident.sla_configuration_id = content['configuration']
+            incident.sla_configuration_id = content['configuration_id']
 
     if 'created_by_id' in content:
         incident.created_by_id = content['created_by_id']
@@ -243,9 +250,8 @@ def postIncident():
     db.session.add(incident)
     db.session.commit()
     return jsonify({
-        "status_code": 201,
         "id": incident.id
-    })
+    }), 201
 
 
 def incidentToDict(incident):

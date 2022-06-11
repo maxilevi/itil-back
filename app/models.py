@@ -67,6 +67,7 @@ class Change(db.Model):
     priority = db.Column(db.String)
     created_by_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     problem_id = db.Column(db.Integer, db.ForeignKey("problem.id"))
+    status = db.Column(db.String, nullable=False)
 
 class ProblemComment(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
