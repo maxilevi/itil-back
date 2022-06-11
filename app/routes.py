@@ -252,25 +252,24 @@ def postIncident():
         "id": incident.id
     }), 201
 
-
+# TODO: esto se tiene que adaptar al nuevo modelo de configuraciones, ahora devuelve una poronga
 def configToDict(incident_config):
-    config_type = None
-    config_id = None
-    if incident_config.sla_configuration_id:
-        config_id = incident_config.sla_configuration_id
-        config_type = 'sla'
-
-    if incident_config.software_configuration_id:
-        config_id = incident_config.software_configuration_id
-        config_type = 'software'
-
-    if incident_config.hardware_configuration_id:
-        config_id = incident_config.hardware_configuration_id
-        config_type = 'hardware'
+    # config_type = None
+    # config_id = None
+    # if incident_config.sla_configuration_id:
+    #     config_id = incident_config.sla_configuration_id
+    #     config_type = 'sla'
+    #
+    # if incident_config.software_configuration_id:
+    #     config_id = incident_config.software_configuration_id
+    #     config_type = 'software'
+    #
+    # if incident_config.hardware_configuration_id:
+    #     config_id = incident_config.hardware_configuration_id
+    #     config_type = 'hardware'
 
     return {
-        'type': config_type,
-        'id': config_id
+        'id': incident_config.id
     }
 
 def incidentToDict(incident):
