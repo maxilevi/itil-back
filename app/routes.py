@@ -282,7 +282,7 @@ def incidentToDict(incident):
         'created_by_id': incident.created_by_id,
         'priority': incident.priority,
         'status': incident.status,
-        'configurations': map(configToDict, IncidentConfiguration.query.filter_by(incident_id=incident.id)),
+        'configurations': list(map(configToDict, IncidentConfiguration.query.filter_by(incident_id=incident.id))),
         'description': incident.description,
         'name': incident.name
     }
