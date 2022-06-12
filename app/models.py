@@ -54,6 +54,7 @@ class IncidentConfiguration(db.Model):
 
 class Change(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String)
     description = db.Column(db.String)
     priority = db.Column(db.String)
     created_by_id = db.Column(db.String)
