@@ -5,4 +5,3 @@ python-dotenv
 gunicorn
 flask_swagger_ui
 pytest
-alembic
