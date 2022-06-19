@@ -1,5 +1,4 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import relationship
 
 db = SQLAlchemy()
 
@@ -70,3 +69,6 @@ class IncidentComment(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     comment = db.Column(db.String)
     incident_id = db.Column(db.Integer, db.ForeignKey("incident.id"))
+
+
+db.engine.excecute

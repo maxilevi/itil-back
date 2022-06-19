@@ -38,10 +38,7 @@ def postChange():
     if 'description' in content:
         change.description = content['description']
 
-    if 'proprity' in content:
-        change.priority = content['priority']
-
-    if 'proprity' in content:
+    if 'priority' in content:
         change.priority = content['priority']
 
     if 'created_by_id' in content:
@@ -130,7 +127,7 @@ def postProblem():
 
     problem = Problem(name=content['name'], status=Status.CREATED)
 
-    if 'proprity' in content:
+    if 'priority' in content:
         problem.priority = content['priority']
 
     if 'created_by_id' in content:
@@ -235,7 +232,7 @@ def postIncident():
     if 'impact' in content:
         incident.impact = content['impact']
 
-    if 'proprity' in content:
+    if 'priority' in content:
         incident.priority = content['priority']
 
     if 'description' in content:

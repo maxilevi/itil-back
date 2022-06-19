@@ -9,27 +9,27 @@ load_dotenv()
 
 def create_app():
 
-	app = Flask(__name__)
-	app.config['DEBUG'] = True
-	app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_FLASK_URL")
+    app = Flask(__name__)
+    app.config['DEBUG'] = True
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_FLASK_URL")
 
-	db.init_app(app)
-	app.register_blueprint(routes_bp, url_prefix='/')
+    db.init_app(app)
+    app.register_blueprint(routes_bp, url_prefix='/')
 
-	@app.after_request
-	def after_request(response):
-	    header = response.headers
-	    header['Access-Control-Allow-Origin'] = '*'
-	    header["Access-Control-Allow-Headers" ] = "Origin, X-Requested-With, Content-Type, Accept"
-	    header["Access-Control-Allow-Methods" ] = "GET,PUT,POST,PATCH,DELETE"
-	    return response
+    @app.after_request
+    def after_request(response):
+        header = response.headers
+        header['Access-Control-Allow-Origin'] = '*'
+        header["Access-Control-Allow-Headers" ] = "Origin, X-Requested-With, Content-Type, Accept"
+        header["Access-Control-Allow-Methods" ] = "GET,PUT,POST,PATCH,DELETE"
+        return response
 
-	return app
+    return app
 
 app = create_app()
 
 if __name__ == '__main__':
-	with app.app_context():
-		db.create_all()
+    with app.app_context():
+        db.create_all()
 
-	app.run()
+    app.run()
