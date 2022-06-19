@@ -166,6 +166,22 @@ def problemToDict(problem):
 
 # Incidentes
 
+@routes_bp.route('/incident/<id>/take', methods=['POST'])
+def takeIncident(incident_id):
+    content = request.json
+    if not 'taken_by_id' in content:
+        return getError('Falta el ID del usuario.'), 400
+    incident = Incident.query.get(incident_id)
+    incident.taken_by_id = content['taken_by_id']
+    incident.status = Status.TAKEN
+    db.session.commit()
+
+@routes_bp.route('/incident/<id>/solve', methods=['POST'])
+def solveIncident(incident_id):
+    incident = Incident.query.get(incident_id)
+    incident.status = Status.SOLVED
+    db.session.commit()
+
 @routes_bp.route('/incident/<id>/comment', methods=['GET'])
 def getIncidentComments(incident_id):
     comments = IncidentComment.query.filter_by(incident_id=incident_id)
