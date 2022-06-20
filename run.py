@@ -2,6 +2,7 @@ from flask import Flask
 from app.routes import routes_bp
 from app.models import db
 import os
+from flask_migrate import Migrate
 from dotenv import load_dotenv
 from flask_swagger_ui import get_swaggerui_blueprint
 
@@ -27,6 +28,7 @@ def create_app():
     return app
 
 app = create_app()
+migrate = Migrate(app, db)
 
 if __name__ == '__main__':
     with app.app_context():
