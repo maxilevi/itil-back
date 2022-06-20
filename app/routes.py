@@ -149,17 +149,17 @@ def deleteProblem(id):
     return id, 200
 
 @routes_bp.route('/problem/<id>/comment', methods=['GET'])
-def getProblemComments(problem_id):
-    comments = ProblemComment.query.filter_by(problem_id=problem_id)
+def getProblemComments(id):
+    comments = ProblemComment.query.filter_by(problem_id=id)
     return jsonify(list(map(lambda x: x.comment, comments)))
 
 @routes_bp.route('/problem/<id>/comment', methods=['POST'])
-def commentProblem(problem_id):
+def commentProblem(id):
     content = request.json
     if not 'comment' in content:
         return getError('Falta el comentario.'), 400
 
-    comment = ProblemComment(comment=content['comment'], problem_id=problem_id)
+    comment = ProblemComment(comment=content['comment'], problem_id=id)
 
     db.session.add(comment)
     db.session.commit()
@@ -177,27 +177,27 @@ def getProblemById(id):
     return jsonify(problemToDict(problem))
 
 @routes_bp.route('/problem/<id>/take', methods=['POST'])
-def takeProblem(problem_id):
+def takeProblem(id):
     content = request.json
     if not 'taken_by_id' in content:
         return getError('Falta el ID del usuario.'), 400
 
-    incidents = Incident.query.filter_by(problem_id=problem_id)
+    incidents = Incident.query.filter_by(problem_id=id)
     for incident in incidents:
         incident.status = Status.TAKEN
 
-    problem = Problem.query.get(problem_id)
+    problem = Problem.query.get(id)
     problem.taken_by_id = content['taken_by_id']
     problem.status = Status.TAKEN
     db.session.commit()
     return "", 200
 
 @routes_bp.route('/problem/<id>/solve', methods=['POST'])
-def solveProblem(problem_id):
-    problem = Problem.query.get(problem_id)
+def solveProblem(id):
+    problem = Problem.query.get(id)
     problem.status = Status.SOLVED
 
-    incidents = Incident.query.filter_by(problem_id=problem_id)
+    incidents = Incident.query.filter_by(problem_id=id)
     for incident in incidents:
         incident.status = Status.SOLVED
 
@@ -259,42 +259,42 @@ def deleteIncident(id):
     return id, 200
 
 @routes_bp.route('/incident/<id>/take', methods=['POST'])
-def takeIncident(incident_id):
+def takeIncident(id):
     content = request.json
     if not 'taken_by_id' in content:
         return getError('Falta el ID del usuario.'), 400
-    incident = Incident.query.get(incident_id)
+    incident = Incident.query.get(id)
     incident.taken_by_id = content['taken_by_id']
     incident.status = Status.TAKEN
     db.session.commit()
     return "", 200
 
 @routes_bp.route('/incident/<id>/solve', methods=['POST'])
-def solveIncident(incident_id):
-    incident = Incident.query.get(incident_id)
+def solveIncident(id):
+    incident = Incident.query.get(id)
     incident.status = Status.SOLVED
     db.session.commit()
     return "", 200
 
 @routes_bp.route('/incident/<id>/comment', methods=['GET'])
-def getIncidentComments(incident_id):
-    comments = IncidentComment.query.filter_by(incident_id=incident_id)
+def getIncidentComments(id):
+    comments = IncidentComment.query.filter_by(incident_id=id)
     return jsonify(list(map(lambda x: x.comment, comments)))
 
 @routes_bp.route('/incident/<id>/comment', methods=['POST'])
-def commentIncident(incident_id):
+def commentIncident(id):
     content = request.json
     if not 'comment' in content:
         return getError('Falta el comentario.'), 400
 
-    comment = IncidentComment(comment=content['comment'], incident_id=incident_id)
+    comment = IncidentComment(comment=content['comment'], incident_id=id)
 
     db.session.add(comment)
     db.session.commit()
     return "", 200
 
 @routes_bp.route('/incident/<id>/problem', methods=['POST'])
-def assignToProblem(incident_id):
+def assignToProblem(id):
     content = request.json
     if not 'problem_id' in content:
         return getError('Falta el comentario.'), 400
@@ -302,7 +302,7 @@ def assignToProblem(incident_id):
     problem = Problem.query.get(content['problem_id'])
     if not problem:
         return getError('Problem_id inválido.'), 400
-    incident = Incident.query.get(incident_id)
+    incident = Incident.query.get(id)
     incident.status = problem.status
     incident.problem_id = content['problem_id']
 
