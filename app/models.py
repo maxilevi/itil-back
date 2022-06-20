@@ -69,3 +69,9 @@ class IncidentComment(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     comment = db.Column(db.String)
     incident_id = db.Column(db.Integer, db.ForeignKey("incident.id"))
+
+class KnownErrors(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String)
+    description = db.Column(db.String)
+    solution = db.Column(db.String)
