@@ -26,6 +26,8 @@ def solveKnownError(id):
     knownError.solution = content['solution']
     db.session.commit()
 
+    return "", 200
+
 @routes_bp.route('/knownError', methods=['GET'])
 def getKnownErrors():
     return jsonify(list(map(knownErrorToDict, KnownErrors.query.all())))
@@ -41,22 +43,28 @@ def getKnownErrorsById(id):
 def postKnownErrors():
     content = request.json
 
-    knownError = KnownErrors()
+    if not 'name' in content or not 'description' in content:
+        return getError("Falta el nombre o la descripción del error"), 400
 
-    if 'description' in content:
-        knownError.description = content['description']
+    knownError = KnownErrors(name=content['name'], description=content['description'])
 
     if 'solution' in content:
         knownError.solution = content['solution']
-
-    if 'name' in content:
-        knownError.name = content['name']
 
     db.session.add(knownError)
     db.session.commit()
     return jsonify({
         "id": knownError.id
     }), 201
+
+@routes_bp.route('/knownError/<id>', methods=['DELETE'])
+def deleteKnownError(id):
+    knownError = KnownErrors.query.get(id)
+    if knownError == None:
+        return getError("No existe ese error"), 400
+    db.session.delete(knownError)
+    db.session.commit()
+    return id, 200
 
 def knownErrorToDict(knownError):
     return {
@@ -67,6 +75,15 @@ def knownErrorToDict(knownError):
     }
 
 ########################## Changes ###############################
+
+@routes_bp.route('/change/<id>', methods=['DELETE'])
+def deleteChange(id):
+    change = Change.query.get(id)
+    if change == None:
+        return getError("No existe ese cambio"), 400
+    db.session.delete(change)
+    db.session.commit()
+    return id, 200
 
 @routes_bp.route('/change', methods=['GET'])
 def getChanges():
@@ -96,8 +113,11 @@ def postChange():
     if 'created_by_id' in content:
         change.created_by_id = content['created_by_id']
 
-    if 'change_id' in content:
-        change.change_id = content['change_id']
+    if 'problem_id' in content:
+        change.problem_id = content['problem_id']
+
+    if 'incident_id' in content:
+        change.incident_id = content['incident_id']
 
     db.session.add(change)
     db.session.commit()
@@ -119,6 +139,15 @@ def changeToDict(change):
 
 ########################## Problems ##########################
 
+@routes_bp.route('/problem/<id>', methods=['DELETE'])
+def deleteProblem(id):
+    problem = Problem.query.get(id)
+    if problem == None:
+        return getError("No existe ese problema"), 400
+    db.session.delete(problem)
+    db.session.commit()
+    return id, 200
+
 @routes_bp.route('/problem/<id>/comment', methods=['GET'])
 def getProblemComments(problem_id):
     comments = ProblemComment.query.filter_by(problem_id=problem_id)
@@ -134,6 +163,7 @@ def commentProblem(problem_id):
 
     db.session.add(comment)
     db.session.commit()
+    return "", 200
 
 @routes_bp.route('/problem', methods=['GET'])
 def getProblems():
@@ -160,6 +190,7 @@ def takeProblem(problem_id):
     problem.taken_by_id = content['taken_by_id']
     problem.status = Status.TAKEN
     db.session.commit()
+    return "", 200
 
 @routes_bp.route('/problem/<id>/solve', methods=['POST'])
 def solveProblem(problem_id):
@@ -171,6 +202,7 @@ def solveProblem(problem_id):
         incident.status = Status.SOLVED
 
     db.session.commit()
+    return "", 200
 
 @routes_bp.route('/problem', methods=['POST'])
 def postProblem():
@@ -217,6 +249,15 @@ def problemToDict(problem):
 
 ########################## Incidentes ##########################
 
+@routes_bp.route('/incident/<id>', methods=['DELETE'])
+def deleteIncident(id):
+    incident = Incident.query.get(id)
+    if incident == None:
+        return getError("No existe ese incidente"), 400
+    db.session.delete(incident)
+    db.session.commit()
+    return id, 200
+
 @routes_bp.route('/incident/<id>/take', methods=['POST'])
 def takeIncident(incident_id):
     content = request.json
@@ -226,12 +267,14 @@ def takeIncident(incident_id):
     incident.taken_by_id = content['taken_by_id']
     incident.status = Status.TAKEN
     db.session.commit()
+    return "", 200
 
 @routes_bp.route('/incident/<id>/solve', methods=['POST'])
 def solveIncident(incident_id):
     incident = Incident.query.get(incident_id)
     incident.status = Status.SOLVED
     db.session.commit()
+    return "", 200
 
 @routes_bp.route('/incident/<id>/comment', methods=['GET'])
 def getIncidentComments(incident_id):
@@ -248,6 +291,7 @@ def commentIncident(incident_id):
 
     db.session.add(comment)
     db.session.commit()
+    return "", 200
 
 @routes_bp.route('/incident/<id>/problem', methods=['POST'])
 def assignToProblem(incident_id):
@@ -263,6 +307,7 @@ def assignToProblem(incident_id):
     incident.problem_id = content['problem_id']
 
     db.session.commit()
+    return "", 200
 
 @routes_bp.route('/incident', methods=['GET'])
 def getIncidents():
