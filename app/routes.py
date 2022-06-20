@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 
 from app.Status import Status
-from app.models import Change, Incident, Problem, IncidentConfiguration, ProblemComment, IncidentComment, db
+from app.models import Change, Incident, Problem, IncidentConfiguration, ProblemComment, IncidentComment, KnownErrors, db
 
 routes_bp = Blueprint('routes', __name__, )
 
@@ -10,11 +10,63 @@ routes_bp = Blueprint('routes', __name__, )
 def index():
     return 'Hola'
 
-# Configuration
 
+########################## Configuration #########################
 
+########################## Known Errors ##########################
 
-# Changes
+@routes_bp.route('/knownError/<id>/solve', methods=['POST'])
+def solveKnownError(id):
+    content = request.json
+    if not 'solution' in content:
+        return getError("Falta la solución"), 400
+    knownError = KnownErrors.query.get(id)
+    if knownError == None:
+        return getError("No existe ese error"), 400
+    knownError.solution = content['solution']
+    db.session.commit()
+
+@routes_bp.route('/knownError', methods=['GET'])
+def getKnownErrors():
+    return jsonify(list(map(knownErrorToDict, KnownErrors.query.all())))
+
+@routes_bp.route('/knownError/<id>', methods=['GET'])
+def getKnownErrorsById(id):
+    knownError = KnownErrors.query.get(id)
+    if knownError == None:
+        return getError("No existe ese error"), 400
+    return jsonify(knownErrorToDict(knownError))
+
+@routes_bp.route('/knownError', methods=['POST'])
+def postKnownErrors():
+    content = request.json
+
+    knownError = KnownErrors()
+
+    if 'description' in content:
+        knownError.description = content['description']
+
+    if 'solution' in content:
+        knownError.solution = content['solution']
+
+    if 'name' in content:
+        knownError.name = content['name']
+
+    db.session.add(knownError)
+    db.session.commit()
+    return jsonify({
+        "id": knownError.id
+    }), 201
+
+def knownErrorToDict(knownError):
+    return {
+        'id': knownError.id,
+        'description' : knownError.description,
+        'name': knownError.name,
+        'solution': knownError.solution,
+    }
+
+########################## Changes ###############################
 
 @routes_bp.route('/change', methods=['GET'])
 def getChanges():
@@ -64,7 +116,8 @@ def changeToDict(change):
         'status': change.status,
     }
 
-# Problems
+
+########################## Problems ##########################
 
 @routes_bp.route('/problem/<id>/comment', methods=['GET'])
 def getProblemComments(problem_id):
@@ -161,7 +214,8 @@ def problemToDict(problem):
         'name': problem.name
     }
 
-# Incidentes
+
+########################## Incidentes ##########################
 
 @routes_bp.route('/incident/<id>/take', methods=['POST'])
 def takeIncident(incident_id):
