@@ -39,7 +39,7 @@ class Problem(db.Model):
 
 class Incident(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    problem_id = db.Column(db.Integer, db.ForeignKey("problem.id"))
+    problem_id = db.Column(db.Integer, db.ForeignKey("problem.id"), nullable=True)
     name = db.Column(db.String, nullable=False)
     priority = db.Column(db.String)
     created_by_id = db.Column(db.String)
@@ -61,8 +61,8 @@ class Change(db.Model):
     description = db.Column(db.String)
     priority = db.Column(db.String)
     created_by_id = db.Column(db.String)
-    problem_id = db.Column(db.Integer, db.ForeignKey("problem.id"))
-    incident_id = db.Column(db.Integer, db.ForeignKey("incident.id"))
+    problem_id = db.Column(db.Integer, db.ForeignKey("problem.id"), nullable=True)
+    incident_id = db.Column(db.Integer, db.ForeignKey("incident.id"), nullable=True)
     status = db.Column(db.String, nullable=False)
     created_on = db.Column(db.DateTime, server_default=db.func.now())
 

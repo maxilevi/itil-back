@@ -107,12 +107,19 @@ def getConfig(id):
     if not config:
         return 'No existe esa config', 404
 
-    return jsonify({
+    return jsonify(getConfigDict(config)), 201
+
+@routes_bp.route('/config', methods=['GET'])
+def getAllConfigs():
+    return jsonify(list(map(getConfigDict, Configuration.query.all())))
+
+def getConfigDict(config):
+    return {
         "config": {
-            **configToDict(config.id),
-            **({'current_version': config.current_version})
+                **configToDict(config.id),
+                **({'current_version': config.current_version})
+            }
         }
-    }), 201
 
 ########################## Known Errors ##########################
 
