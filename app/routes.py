@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_sqlalchemy import inspect
 from app.Status import Status
-from app.models import Change, Incident, Problem, ConfigurationData, Configuration, IncidentConfiguration, ProblemComment, IncidentComment, KnownErrors, db
+from app.models import Change, Incident, Problem, ConfigurationData, Configuration, IncidentConfiguration, ProblemComment, IncidentComment, KnownErrors, db, ChangeComment
 
 routes_bp = Blueprint('routes', __name__, )
 
@@ -173,6 +173,7 @@ def knownErrorToDict(knownError):
         'description' : knownError.description,
         'name': knownError.name,
         'solution': knownError.solution,
+        'created_on': knownError.created_on
     }
 
 ########################## Changes ###############################
@@ -226,6 +227,23 @@ def postChange():
         "id": change.id
     }), 201
 
+@routes_bp.route('/change/<id>/comment', methods=['GET'])
+def getChangeComments(id):
+    comments = ChangeComment.query.filter_by(change_id=id)
+    return jsonify(list(map(lambda x: object_as_dict(x), comments)))
+
+@routes_bp.route('/change/<id>/comment', methods=['POST'])
+def commentChange(id):
+    content = request.json
+    if not 'comment' in content or not 'user_id' in content:
+        return getError('Falta el comentario o usuario.'), 400
+
+    comment = ChangeComment(comment=content['comment'], change_id=id, user_id=content['user_id'])
+
+    db.session.add(comment)
+    db.session.commit()
+    return "", 200
+
 def changeToDict(change):
     return {
         'id': change.id,
@@ -235,6 +253,7 @@ def changeToDict(change):
         'name': change.name,
         'problem_id' : change.problem_id,
         'status': change.status,
+        'created_on': change.created_on
     }
 
 
@@ -252,15 +271,15 @@ def deleteProblem(id):
 @routes_bp.route('/problem/<id>/comment', methods=['GET'])
 def getProblemComments(id):
     comments = ProblemComment.query.filter_by(problem_id=id)
-    return jsonify(list(map(lambda x: x.comment, comments)))
+    return jsonify(list(map(lambda x: object_as_dict(x), comments)))
 
 @routes_bp.route('/problem/<id>/comment', methods=['POST'])
 def commentProblem(id):
     content = request.json
-    if not 'comment' in content:
-        return getError('Falta el comentario.'), 400
+    if not 'comment' in content or not 'user_id' in content:
+        return getError('Falta el comentario o usuario.'), 400
 
-    comment = ProblemComment(comment=content['comment'], problem_id=id)
+    comment = ProblemComment(comment=content['comment'], problem_id=id, user_id=content['user_id'])
 
     db.session.add(comment)
     db.session.commit()
@@ -344,7 +363,8 @@ def problemToDict(problem):
         'created_by_id': problem.created_by_id,
         'priority': problem.priority,
         'status': problem.status,
-        'name': problem.name
+        'name': problem.name,
+        'created_on': problem.created_on
     }
 
 
@@ -380,15 +400,15 @@ def solveIncident(id):
 @routes_bp.route('/incident/<id>/comment', methods=['GET'])
 def getIncidentComments(id):
     comments = IncidentComment.query.filter_by(incident_id=id)
-    return jsonify(list(map(lambda x: x.comment, comments)))
+    return jsonify(list(map(lambda x: object_as_dict(x), comments)))
 
 @routes_bp.route('/incident/<id>/comment', methods=['POST'])
 def commentIncident(id):
     content = request.json
-    if not 'comment' in content:
-        return getError('Falta el comentario.'), 400
+    if not 'comment' in content or not 'user_id' in content:
+        return getError('Falta el comentario o usuario.'), 400
 
-    comment = IncidentComment(comment=content['comment'], incident_id=id)
+    comment = IncidentComment(comment=content['comment'], incident_id=id, user_id=content['user_id'])
 
     db.session.add(comment)
     db.session.commit()
@@ -478,7 +498,6 @@ def configToDict(config_id):
     }
 
 def incidentToDict(incident):
-
     return {
         'id': incident.id,
         'impact': incident.impact,
@@ -489,7 +508,8 @@ def incidentToDict(incident):
         'status': incident.status,
         'configurations': list(map(configToDict, map(lambda x: x.configuration_id, IncidentConfiguration.query.filter_by(incident_id=incident.id)))),
         'description': incident.description,
-        'name': incident.name
+        'name': incident.name,
+        'created_on': incident.created_on
     }
 
 def getError(msj):
