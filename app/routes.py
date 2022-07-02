@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
-
+from flask_sqlalchemy import inspect
 from app.Status import Status
-from app.models import Change, Incident, Problem, IncidentConfiguration, ProblemComment, IncidentComment, KnownErrors, db
+from app.models import Change, Incident, Problem, ConfigurationData, Configuration, IncidentConfiguration, ProblemComment, IncidentComment, KnownErrors, db
 
 routes_bp = Blueprint('routes', __name__, )
 
@@ -12,6 +12,61 @@ def index():
 
 
 ########################## Configuration #########################
+
+def create_config_data(id, version, content):
+    if not 'config_type' in content:
+        return None, 'Falta el tipo de configuracion', 500
+
+    if not 'name' in content:
+        return None, 'Falta el nombre de configuracion', 500
+
+    config_data = ConfigurationData(config_id=id, version_number=version)
+    for key, value in content.items():
+        setattr(config_data, key, value)
+    return config_data, None, None
+
+@routes_bp.route('/config', methods=['POST'])
+def postConfig():
+    content = request.json
+    config = Configuration()
+
+    db.session.add(config)
+    db.session.flush()
+    db.session.refresh(config)
+
+    config_data, error, errno = create_config_data(config.id, 1, content)
+    if not config_data:
+        return error, errno
+
+    db.session.add(config_data)
+    db.session.commit()
+    return jsonify({
+        "id": config.id
+    }), 201
+
+
+@routes_bp.route('/config/<id>', methods=['PATCH'])
+def updateConfig(id):
+    content = request.json
+    config = Configuration.query.get(id)
+    if not config:
+        return 'No existe esa config', 404
+
+    db.session.add(config)
+    db.session.flush()
+    db.session.refresh(config)
+
+    prev_versions = ConfigurationData.query.filter_by(config_id=id)
+    config_data, error, errno = create_config_data(config.id, max(map(lambda x: x.version_number, prev_versions)) + 1, content)
+    if not config_data:
+        return error, errno
+
+    db.session.add(config_data)
+    db.session.commit()
+    return jsonify({
+        "id": config.id
+    }), 201
+
 
 ########################## Known Errors ##########################
 
@@ -364,24 +419,15 @@ def postIncident():
         "id": incident.id
     }), 201
 
-# TODO: esto se tiene que adaptar al nuevo modelo de configuraciones, ahora devuelve una poronga
-def configToDict(incident_config):
-    # config_type = None
-    # config_id = None
-    # if incident_config.sla_configuration_id:
-    #     config_id = incident_config.sla_configuration_id
-    #     config_type = 'sla'
-    #
-    # if incident_config.software_configuration_id:
-    #     config_id = incident_config.software_configuration_id
-    #     config_type = 'software'
-    #
-    # if incident_config.hardware_configuration_id:
-    #     config_id = incident_config.hardware_configuration_id
-    #     config_type = 'hardware'
+def object_as_dict(obj):
+    return {c.key: getattr(obj, c.key)
+            for c in inspect(obj).mapper.column_attrs}
 
+def configToDict(incident_config):
+    versions = ConfigurationData.query.filter_by(config_id=incident_config.configuration_id)
     return {
-        'id': incident_config.id
+        'id': incident_config.id,
+        'versions': sorted(list(map(object_as_dict, versions)), key=lambda x: x['version'])
     }
 
 def incidentToDict(incident):
