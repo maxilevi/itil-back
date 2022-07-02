@@ -14,12 +14,6 @@ def index():
 ########################## Configuration #########################
 
 def create_config_data(id, version, content):
-    if not 'config_type' in content:
-        return None, 'Falta el tipo de configuracion', 500
-
-    if not 'name' in content:
-        return None, 'Falta el nombre de configuracion', 500
-
     config_data = ConfigurationData(config_id=id, version_number=version)
     for key, value in content.items():
         setattr(config_data, key, value)
@@ -28,6 +22,11 @@ def create_config_data(id, version, content):
 @routes_bp.route('/config', methods=['POST'])
 def postConfig():
     content = request.json
+    if not 'config_type' in content:
+        return None, 'Falta el tipo de configuracion', 400
+
+    if not 'name' in content:
+        return None, 'Falta el nombre de configuracion', 400
     config = Configuration()
     config.current_version = 1
 
@@ -53,22 +52,36 @@ def updateConfigValues(id):
     if not config:
         return 'No existe esa config', 404
 
+    if not "user_id" in content:
+        return 'Falta el user_id', 400
+
     db.session.add(config)
     db.session.flush()
     db.session.refresh(config)
 
     prev_versions = ConfigurationData.query.filter_by(config_id=id)
     config_data, error, errno = create_config_data(config.id, max(map(lambda x: x.version_number, prev_versions)) + 1, content)
+
     if not config_data:
         return error, errno
 
     config.current_version = config_data.version_number
-
+    createChangeFromConfig(config, content['user_id'], config_data)
     db.session.add(config_data)
     db.session.commit()
     return jsonify({
         "id": config.id
     }), 201
+
+def createChangeFromConfig(config, user_id, config_data):
+    content = {
+        "name": "Cambio de versión de la configuración: " + config_data.name,
+        "description": "Se debe ejecutar el cambio de versión a la NRO: " + str(config.current_version),
+        "priority": "Media",
+        "created_by_id": user_id,
+        "status": Status.CREATED
+    }
+    return createChange(content)
 
 @routes_bp.route('/config/<id>', methods=['PATCH'])
 def updateConfigAttributes(id):
@@ -81,8 +94,6 @@ def updateConfigAttributes(id):
         return 'No current version specified', 500
 
     config.current_version = content["current_version"]
-
-    db.session.add(config)
     db.session.commit()
     return jsonify({
         "id": config.id
@@ -211,7 +222,14 @@ def postChange():
     if not 'name' in content or 'problem_id' not in content:
         return getError('Faltan atributos obligatorios para un cambio.'), 400
 
-    change = Change(name=content['name'], status=Status.CREATED, problem_id=content['problem_id'])
+    change = createChange(content)
+
+    return jsonify({
+        "id": change.id
+    }), 201
+
+def createChange(content):
+    change = Change(name=content['name'], status=Status.CREATED)
 
     if 'description' in content:
         change.description = content['description']
@@ -230,9 +248,7 @@ def postChange():
 
     db.session.add(change)
     db.session.commit()
-    return jsonify({
-        "id": change.id
-    }), 201
+    return change
 
 @routes_bp.route('/change/<id>/comment', methods=['GET'])
 def getChangeComments(id):
@@ -248,6 +264,24 @@ def commentChange(id):
     comment = ChangeComment(comment=content['comment'], change_id=id, user_id=content['user_id'])
 
     db.session.add(comment)
+    db.session.commit()
+    return "", 200
+
+@routes_bp.route('/change/<id>/take', methods=['POST'])
+def takeChange(id):
+    content = request.json
+    if not 'taken_by_id' in content:
+        return getError('Falta el ID del usuario.'), 400
+    change = Change.query.get(id)
+    change.taken_by_id = content['taken_by_id']
+    change.status = Status.TAKEN
+    db.session.commit()
+    return "", 200
+
+@routes_bp.route('/change/<id>/solve', methods=['POST'])
+def solveChange(id):
+    change = Change.query.get(id)
+    change.status = Status.SOLVED
     db.session.commit()
     return "", 200
 
