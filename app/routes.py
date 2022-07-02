@@ -29,6 +29,7 @@ def create_config_data(id, version, content):
 def postConfig():
     content = request.json
     config = Configuration()
+    config.current_version = 1
 
     db.session.add(config)
     db.session.flush()
@@ -45,8 +46,8 @@ def postConfig():
     }), 201
 
 
-@routes_bp.route('/config/<id>', methods=['PATCH'])
-def updateConfig(id):
+@routes_bp.route('/config/<id>', methods=['POST'])
+def updateConfigValues(id):
     content = request.json
     config = Configuration.query.get(id)
     if not config:
@@ -61,12 +62,57 @@ def updateConfig(id):
     if not config_data:
         return error, errno
 
+    config.current_version = config_data.version_number
+
     db.session.add(config_data)
     db.session.commit()
     return jsonify({
         "id": config.id
     }), 201
 
+@routes_bp.route('/config/<id>', methods=['PATCH'])
+def updateConfigAttributes(id):
+    content = request.json
+    config = Configuration.query.get(id)
+    if not config:
+        return 'No existe esa config', 404
+
+    if not 'current_version' in content:
+        return 'No current version specified', 500
+
+    config.current_version = content["current_version"]
+
+    db.session.add(config)
+    db.session.commit()
+    return jsonify({
+        "id": config.id
+    }), 201
+
+@routes_bp.route('/config/<id>', methods=['DELETE'])
+def deleteConfig(id):
+    config = Configuration.query.get(id)
+    prev_versions = ConfigurationData.query.filter_by(config_id=id)
+    for v in prev_versions:
+        db.session.delete(v)
+
+    db.session.delete(config)
+    db.session.commit()
+    return jsonify({
+    }), 200
+
+
+@routes_bp.route('/config/<id>', methods=['GET'])
+def getConfig(id):
+    config = Configuration.query.get(id)
+    if not config:
+        return 'No existe esa config', 404
+
+    return jsonify({
+        "config": {
+            **configToDict(config.id),
+            **({'current_version': config.current_version})
+        }
+    }), 201
 
 ########################## Known Errors ##########################
 
@@ -423,11 +469,12 @@ def object_as_dict(obj):
     return {c.key: getattr(obj, c.key)
             for c in inspect(obj).mapper.column_attrs}
 
-def configToDict(incident_config):
-    versions = ConfigurationData.query.filter_by(config_id=incident_config.configuration_id)
+def configToDict(config_id):
+    versions = ConfigurationData.query.filter_by(config_id=config_id)
+    print(versions)
     return {
-        'id': incident_config.id,
-        'versions': sorted(list(map(object_as_dict, versions)), key=lambda x: x['version'])
+        'id': config_id,
+        'versions': sorted(list(map(object_as_dict, versions)), key=lambda x: x['version_number'])
     }
 
 def incidentToDict(incident):
@@ -440,7 +487,7 @@ def incidentToDict(incident):
         'created_by_id': incident.created_by_id,
         'priority': incident.priority,
         'status': incident.status,
-        'configurations': list(map(configToDict, IncidentConfiguration.query.filter_by(incident_id=incident.id))),
+        'configurations': list(map(configToDict, map(lambda x: x.configuration_id, IncidentConfiguration.query.filter_by(incident_id=incident.id)))),
         'description': incident.description,
         'name': incident.name
     }

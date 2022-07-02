@@ -25,6 +25,7 @@ class ConfigurationData(db.Model):
 
 class Configuration(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    current_version = db.Column(db.Integer, nullable=False)
 
 class Problem(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
