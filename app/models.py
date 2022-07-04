@@ -61,6 +61,7 @@ class Change(db.Model):
     description = db.Column(db.String)
     priority = db.Column(db.String)
     created_by_id = db.Column(db.String)
+    taken_by_id = db.Column(db.String)
     problem_id = db.Column(db.Integer, db.ForeignKey("problem.id"), nullable=True)
     incident_id = db.Column(db.Integer, db.ForeignKey("incident.id"), nullable=True)
     status = db.Column(db.String, nullable=False)

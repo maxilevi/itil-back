@@ -219,7 +219,7 @@ def getChangeById(id):
 @routes_bp.route('/change', methods=['POST'])
 def postChange():
     content = request.json
-    if not 'name' in content or 'problem_id' not in content:
+    if not 'name' in content:
         return getError('Faltan atributos obligatorios para un cambio.'), 400
 
     change = createChange(content)
@@ -239,6 +239,9 @@ def createChange(content):
 
     if 'created_by_id' in content:
         change.created_by_id = content['created_by_id']
+
+    if 'taken_by_id' in content:
+        change.taken_by_id = content['taken_by_id']
 
     if 'problem_id' in content:
         change.problem_id = content['problem_id']
@@ -290,6 +293,7 @@ def changeToDict(change):
         'id': change.id,
         'description' : change.description,
         'created_by_id': change.created_by_id,
+        'taken_by_id' : change.taken_by_id,
         'priority': change.priority,
         'name': change.name,
         'problem_id' : change.problem_id,
@@ -518,7 +522,7 @@ def postIncident():
 
     if 'configuration_ids' in content:
         for id in content['configuration_ids']:
-            incident_configuration = IncidentConfiguration(indicent_id=incident.id, configuration_id=id)
+            incident_configuration = IncidentConfiguration(incident_id=incident.id, configuration_id=id)
             db.session.add(incident_configuration)
 
     db.session.commit()
