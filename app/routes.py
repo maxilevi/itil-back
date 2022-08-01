@@ -249,6 +249,9 @@ def createChange(content):
     if 'incident_id' in content:
         change.incident_id = content['incident_id']
 
+    if 'impact' in content:
+        change.impact = content['impact']
+
     db.session.add(change)
     db.session.commit()
     return change
@@ -289,6 +292,7 @@ def solveChange(id):
     return "", 200
 
 def changeToDict(change):
+    incident = Incident.query.get(change.incident_id)
     return {
         'id': change.id,
         'description' : change.description,
@@ -298,7 +302,9 @@ def changeToDict(change):
         'name': change.name,
         'problem_id' : change.problem_id,
         'status': change.status,
-        'created_on': change.created_on
+        'created_on': change.created_on,
+        'impact': change.impact,
+        'incident': incidentToDict(incident)
     }
 
 

@@ -66,6 +66,7 @@ class Change(db.Model):
     incident_id = db.Column(db.Integer, db.ForeignKey("incident.id"), nullable=True)
     status = db.Column(db.String, nullable=False)
     created_on = db.Column(db.DateTime, server_default=db.func.now())
+    impact = db.Column(db.String)
 
 class ChangeComment(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
