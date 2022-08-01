@@ -304,7 +304,7 @@ def changeToDict(change):
         'status': change.status,
         'created_on': change.created_on,
         'impact': change.impact,
-        'incident': incidentToDict(incident)
+        'incident': incidentToDict(incident) if incident else None
     }
 
 
