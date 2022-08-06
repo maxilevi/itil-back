@@ -132,6 +132,13 @@ def getConfigDict(config):
             }
         }
 
+def getConfigDictFromIncident(config_id):
+    config = Configuration.query.get(config_id)
+    return {
+            **configToDict(config_id),
+            **({'current_version': config.current_version})
+           }
+
 ########################## Known Errors ##########################
 
 @routes_bp.route('/knownError/<id>/solve', methods=['POST'])
@@ -557,7 +564,7 @@ def incidentToDict(incident):
         'created_by_id': incident.created_by_id,
         'priority': incident.priority,
         'status': incident.status,
-        'configurations': list(map(configToDict, map(lambda x: x.configuration_id, IncidentConfiguration.query.filter_by(incident_id=incident.id)))),
+        'configurations': list(map(getConfigDictFromIncident, map(lambda x: x.configuration_id, IncidentConfiguration.query.filter_by(incident_id=incident.id)))),
         'description': incident.description,
         'name': incident.name,
         'created_on': incident.created_on
